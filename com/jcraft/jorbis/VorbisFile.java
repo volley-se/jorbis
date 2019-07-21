@@ -91,7 +91,7 @@ public class VorbisFile{
     super();
     InputStream is=null;
     try{
-      is=new SeekableInputStream(file);
+      is=new SeekableInputStreamImpl(file);
       int ret=open(is, null, 0);
       if(ret==-1){
         throw new JOrbisException("VorbisFile: open return -1");
@@ -1339,11 +1339,17 @@ public class VorbisFile{
     datasource.close();
   }
 
-  class SeekableInputStream extends InputStream{
+  public static abstract class SeekableInputStream extends InputStream {
+    public abstract long getLength() throws IOException;
+    public abstract long tell() throws IOException;
+    public abstract void seek(long pos) throws IOException;
+  }
+
+  static class SeekableInputStreamImpl extends SeekableInputStream{
     java.io.RandomAccessFile raf=null;
     final String mode="r";
 
-    SeekableInputStream(String file) throws java.io.IOException{
+    SeekableInputStreamImpl(String file) throws java.io.IOException{
       raf=new java.io.RandomAccessFile(file, mode);
     }
 
@@ -1377,16 +1383,6 @@ public class VorbisFile{
 
     public void close() throws java.io.IOException{
       raf.close();
-    }
-
-    public synchronized void mark(int m){
-    }
-
-    public synchronized void reset() throws java.io.IOException{
-    }
-
-    public boolean markSupported(){
-      return false;
     }
 
     public void seek(long pos) throws java.io.IOException{
